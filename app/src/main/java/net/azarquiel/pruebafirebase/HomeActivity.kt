@@ -6,6 +6,7 @@ import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -22,8 +23,11 @@ class HomeActivity : AppCompatActivity() {
     private lateinit var endTextView: TextView
     private lateinit var startButton: Button
     private lateinit var endButton: TextView
+    private lateinit var saveButton: TextView
+    private lateinit var deleteButton: TextView
     private var currentTime: String? = null
     private var endTime: String? = null
+    private val db = FirebaseFirestore.getInstance()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home)
@@ -36,6 +40,8 @@ class HomeActivity : AppCompatActivity() {
         endTextView = findViewById(R.id.endTextView)
         startButton = findViewById(R.id.startButton)
         endButton = findViewById(R.id.endButton)
+        saveButton = findViewById(R.id.saveButton)
+        deleteButton = findViewById(R.id.deleteButton)
 
         setupTimeButtons()
 
@@ -80,6 +86,15 @@ class HomeActivity : AppCompatActivity() {
             }else{
                 Toast.makeText(this, "Ya hay hora de salida", Toast.LENGTH_SHORT).show()
             }
+        }
+        saveButton.setOnClickListener {
+
+        }
+        deleteButton.setOnClickListener{
+            currentTime = null
+            endTime = null
+            startTextView.text = "Hora de inicio"
+            endTextView.text = "Hora de fin"
         }
     }
 }
