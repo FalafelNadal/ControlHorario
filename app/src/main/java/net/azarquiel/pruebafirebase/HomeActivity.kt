@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Button
 import android.widget.TextView
+import android.widget.Toast
 import com.google.firebase.auth.FirebaseAuth
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -21,6 +22,8 @@ class HomeActivity : AppCompatActivity() {
     private lateinit var endTextView: TextView
     private lateinit var startButton: Button
     private lateinit var endButton: TextView
+    private var currentTime: String? = null
+    private var endTime: String? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home)
@@ -37,7 +40,8 @@ class HomeActivity : AppCompatActivity() {
         setupTimeButtons()
 
     }
-    private fun setup(email: String, provider: String){
+
+    private fun setup(email: String, provider: String) {
         title = "Inicio"
         emailTextView = findViewById(R.id.emailTextView)
         providerTextView = findViewById(R.id.providerTextView)
@@ -46,24 +50,33 @@ class HomeActivity : AppCompatActivity() {
         providerTextView.text = provider
 
         logOutButton = findViewById(R.id.logOutButton)
- 
-        logOutButton.setOnClickListener{
-        FirebaseAuth.getInstance().signOut()
-        finish()
+
+        logOutButton.setOnClickListener {
+            FirebaseAuth.getInstance().signOut()
+            finish()
         }
 
     }
+
     private fun setupTimeButtons() {
         val timeFormat = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
         startButton.setOnClickListener {
-            val currentTime = timeFormat.format(Date())
-            startTextView.text = "Hora de inicio: $currentTime"
-            endTextView.text = "Hora de fin"
-        }
+            if (currentTime == null) {
+                currentTime = timeFormat.format(Date())
+                startTextView.text = "Hora de inicio: $currentTime"
+                endTextView.text = "Hora de fin"
+            } else {
+                Toast.makeText(this, "Ya hay una hora de inicio", Toast.LENGTH_SHORT).show()
+            }
 
-        endButton.setOnClickListener {
-            val endTime = timeFormat.format(Date())
-            endTextView.text = "Hora de fin: $endTime"
+            endButton.setOnClickListener {
+                if (currentTime == null) {
+                    Toast.makeText(this, "No hay hora de inicio", Toast.LENGTH_SHORT).show()
+                } else {
+                    endTime = timeFormat.format(Date())
+                    endTextView.text = "Hora de fin: $endTime"
+                }
+            }
         }
     }
 }
