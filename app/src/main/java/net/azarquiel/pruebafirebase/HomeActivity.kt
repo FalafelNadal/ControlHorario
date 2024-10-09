@@ -68,14 +68,17 @@ class HomeActivity : AppCompatActivity() {
             } else {
                 Toast.makeText(this, "Ya hay una hora de inicio", Toast.LENGTH_SHORT).show()
             }
-
-            endButton.setOnClickListener {
+        }
+        endButton.setOnClickListener {
+            if (endTime == null) {
                 if (currentTime == null) {
                     Toast.makeText(this, "No hay hora de inicio", Toast.LENGTH_SHORT).show()
                 } else {
                     endTime = timeFormat.format(Date())
                     endTextView.text = "Hora de fin: $endTime"
                 }
+            }else{
+                Toast.makeText(this, "Ya hay hora de salida", Toast.LENGTH_SHORT).show()
             }
         }
     }
