@@ -109,18 +109,18 @@
             android:layout_marginTop="16dp"> <!-- Espacio entre los botones -->
 
             <Button
-                android:id="@+id/saveButton"
+                android:id="@+id/stopButton"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Guardar " />
+                android:text="Parar" />
 
             <Button
                 android:id="@+id/deleteButton"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Borrar" />
+                android:text="Cancelar" />
         </LinearLayout>
     </LinearLayout>
 
