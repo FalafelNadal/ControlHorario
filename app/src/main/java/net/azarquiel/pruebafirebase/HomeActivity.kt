@@ -16,6 +16,7 @@ enum class ProviderType {
 }
 
 class HomeActivity : AppCompatActivity() {
+    private lateinit var accumulatedTime: String
     private lateinit var logOutButton: Button
     private lateinit var emailTextView: TextView
     private lateinit var providerTextView: TextView
@@ -29,6 +30,10 @@ class HomeActivity : AppCompatActivity() {
     private var currentTime: String? = null
     private var endTime: String? = null
     private var timeDifference: String? = null
+    private var isStartTimeSet = false
+    private var partialCurrentTime: String? = null
+    private var partialEndTime: String? = null
+    private var accumulatedMillis: Long = 0L
     private val db = FirebaseFirestore.getInstance()
     private var email: String? = null
 
@@ -80,6 +85,43 @@ class HomeActivity : AppCompatActivity() {
                 Toast.makeText(this, "Ya hay una hora de inicio", Toast.LENGTH_SHORT).show()
             }
         }
+        stopButton.setOnClickListener {
+            val timeFormat = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
+
+            if (!isStartTimeSet) {
+
+                partialCurrentTime = timeFormat.format(Date())
+                Toast.makeText(this, "Hora de inicio parcial registrada: $partialCurrentTime", Toast.LENGTH_SHORT).show()
+                isStartTimeSet = true
+                stopButton.text = "Continuar"
+            } else {
+
+                partialEndTime = timeFormat.format(Date())
+                Toast.makeText(this, "Hora de fin parcial registrada: $partialEndTime", Toast.LENGTH_SHORT).show()
+
+                val startDate = timeFormat.parse(partialCurrentTime!!)
+                val endDate = timeFormat.parse(partialEndTime!!)
+
+                if (startDate != null && endDate != null) {
+                    val differenceInMillis = endDate.time - startDate.time
+                    accumulatedMillis -= differenceInMillis
+
+                    val accumulatedHours = (accumulatedMillis / (1000 * 60 * 60)).toInt()
+                    val accumulatedMinutes = ((accumulatedMillis / (1000 * 60)) % 60).toInt()
+                    val accumulatedSeconds = ((accumulatedMillis / 1000) % 60).toInt()
+
+                    accumulatedTime = String.format("%02d:%02d:%02d", accumulatedHours, accumulatedMinutes, accumulatedSeconds)
+                    countTextView.text = "Suma de horas actual: $accumulatedTime"
+
+                    isStartTimeSet = false
+                    partialCurrentTime = null
+                    partialEndTime = null
+                    stopButton.text = "Parar"
+                }
+            }
+
+        }
+
 
         endButton.setOnClickListener {
             if (endTime == null) {
@@ -96,27 +138,35 @@ class HomeActivity : AppCompatActivity() {
                     if (startDate != null && endDate != null) {
                         val differenceInMillis = endDate.time - startDate.time
 
-                        val hours = (differenceInMillis / (1000 * 60 * 60)).toInt()
-                        val minutes = ((differenceInMillis / (1000 * 60)) % 60).toInt()
-                        val seconds = ((differenceInMillis / 1000) % 60).toInt()
+                        val totalDifferenceInMillis = differenceInMillis + accumulatedMillis
+
+                        if (totalDifferenceInMillis < 0) {
+                            Toast.makeText(this, "La diferencia de tiempo es negativa", Toast.LENGTH_SHORT).show()
+                        }
+
+                        val hours = (totalDifferenceInMillis / (1000 * 60 * 60)).toInt()
+                        val minutes = ((totalDifferenceInMillis / (1000 * 60)) % 60).toInt()
+                        val seconds = ((totalDifferenceInMillis / 1000) % 60).toInt()
 
                         val timeDifference = String.format("%02d:%02d:%02d", hours, minutes, seconds)
+
                         countTextView.text = "Suma de horas: $timeDifference"
 
+                        // Guardar en la base de datos
                         if (email != null) {
                             val sessionData = hashMapOf(
                                 "fecha de inicio" to startTextView.text.toString(),
                                 "fecha de salida" to endTextView.text.toString(),
                                 "suma de horas" to timeDifference
                             )
-                            val dateFormat = SimpleDateFormat("yyyy-MM-dd_HH-mm", Locale.getDefault())
+                            val dateFormat = SimpleDateFormat("yyyy-MM-dd_HH:mm", Locale.getDefault())
                             val currentDateAndTime = dateFormat.format(Date())
 
                             val sessionId = "session_$currentDateAndTime"
 
                             db.collection("users").document(email!!)
                                 .collection("sessions").document(sessionId).set(sessionData)
-                                .addOnSuccessListener{
+                                .addOnSuccessListener {
                                     Toast.makeText(this, "Datos guardados correctamente", Toast.LENGTH_SHORT).show()
                                 }
                                 .addOnFailureListener {
@@ -132,14 +182,9 @@ class HomeActivity : AppCompatActivity() {
             } else {
                 Toast.makeText(this, "Ya hay hora de salida", Toast.LENGTH_SHORT).show()
             }
+            stopButton.text= "Parar"
         }
 
-
-
-
-        stopButton.setOnClickListener {
-
-        }
 
         deleteButton.setOnClickListener {
             currentTime = null
